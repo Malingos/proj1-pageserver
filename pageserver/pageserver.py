@@ -83,16 +83,49 @@ def respond(sock):
     This server responds only to GET requests (not PUT, POST, or UPDATE).
     Any valid GET request is answered with an ascii graphic of a cat.
     """
+    global DOCROOT
+    options = config.configuration()
+    DOCROOT = options.DOCROOT    
     sent = 0
     request = sock.recv(1024)  # We accept only short requests
     request = str(request, encoding='utf-8', errors='strict')
     log.info("--- Received request ----")
     log.info("Request was {}\n***\n".format(request))
-
+    
     parts = request.split()
     if len(parts) > 1 and parts[0] == "GET":
         transmit(STATUS_OK, sock)
-        transmit(CAT, sock)
+        #if parts[1] == "/":
+        #    transmit(CAT, sock)i
+        if parts[1].endswith('.css')==0 and parts[1].endswith('.html')==0:
+            log.info("-- WRONG FILETYPE --")
+            transmit(STATUS_FORBIDDEN, sock)
+        elif "//" in parts[1]  or "~" in parts[1] or ".." in parts[1]:
+            log.info("-- BAD CHARACTERS --")
+            transmit(STATUS_FORBIDDEN, sock)
+        else:
+            path = DOCROOT + parts[1]
+            data = ""
+           try:
+               with open (path, 'r', encoding='utf-8') as myfile:
+                   data = myfile.read()
+                   transmit(data, sock)
+                   log.info("-- FILE " + parts[1] + " SENT --")
+           except FileNotFoundError:
+               log.info("-- FILE " + parts[1] + " NOT FOUND --")
+               transmit(STATUS_NOT_FOUND, sock)
+        #elif parts[1] == "/trivia.html":
+        #    data = ""
+        #    with open ('./pages/trivia.html', 'r') as myfile:
+        #        data=myfile.read()#from stackoverflow: "how do I read a text file into a string variable in python"
+        #        #print(data)
+        #        transmit(data, sock)#Now I just need the CSS page to go as well
+        #elif parts[1] == "/trivia.css":#this request comes after the "trivia.html" request, although I suppose it could be requested standalone?
+        #    with open ('./pages/trivia.css', 'r') as myfile:
+        #        data=myfile.read()
+        #        transmit(data, sock)
+        #else:
+        #    transmit(STATUS_NOT_FOUND, socki)
     else:
         log.info("Unhandled request: {}".format(request))
         transmit(STATUS_NOT_IMPLEMENTED, sock)
