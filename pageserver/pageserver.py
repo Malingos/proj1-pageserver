@@ -106,7 +106,7 @@ def respond(sock):
         else:
             path = DOCROOT + parts[1]
             data = ""
-           try:
+            try:
                with open (path, 'r', encoding='utf-8') as myfile:
                    data = myfile.read()
                    transmit(data, sock)
