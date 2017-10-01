@@ -111,7 +111,7 @@ def respond(sock):
                    data = myfile.read()
                    transmit(data, sock)
                    log.info("-- FILE " + parts[1] + " SENT --")
-           except FileNotFoundError:
+            except FileNotFoundError:
                log.info("-- FILE " + parts[1] + " NOT FOUND --")
                transmit(STATUS_NOT_FOUND, sock)
         #elif parts[1] == "/trivia.html":
